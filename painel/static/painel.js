@@ -626,5 +626,6 @@
   ligarNavegacao();
   renderSituacao(window.PAINEL.situacao);
   aplicar();
-  setInterval(atualizarAgora, 60000);
+  // o painel inteiro se atualiza no mesmo ritmo da captura (python iniciar.py: a cada 2 min)
+  setInterval(aplicar, 120000);
 })();
