@@ -18,7 +18,7 @@
 </head>
 <body class="antialiased selection:bg-emerald-500 selection:text-white text-slate-300 bg-[#000000] font-geist">
 
-<div class="md:px-8 lg:px-12 max-w-[1400px] mr-auto ml-auto pr-6 pl-6">
+<main class="md:px-8 lg:px-12 max-w-[1400px] mr-auto ml-auto pr-6 pl-6">
 
   <!-- ============================================================ Navbar · pílula flutuante -->
   <nav class="flex sticky [animation:animationIn_0.8s_ease-out_0.1s_both] bg-[#000000] z-50 border-[#ffffff]/10 border rounded-full mt-4 mb-0 pt-4 pr-4 pb-4 pl-4 top-4 backdrop-blur-md items-center justify-between">
@@ -49,7 +49,7 @@
   </nav>
 
   <!-- ============================================================ Hero -->
-  <main id="topo" class="grid grid-cols-1 lg:grid-cols-2 pt-28 pb-28 relative gap-x-16 gap-y-16 items-center">
+  <section id="topo" class="grid grid-cols-1 lg:grid-cols-2 pt-28 pb-28 relative gap-x-16 gap-y-16 items-center">
     <div class="absolute inset-0 -z-10 w-full h-full overflow-hidden">
       <div data-us-project="vLGJIxHINq2tCeLOR9Dt" data-us-project-src="ledger-us-scene" class="absolute w-full h-full left-0 top-0 -z-10 opacity-60"></div>
       <script src="{{ url_for('static', filename='vendor/unicorn-scene.js') }}"></script>
@@ -105,7 +105,7 @@
         </div>
       </div>
     </div>
-  </main>
+  </section>
 
   <!-- ============================================================ Dashboard · cartão emoldurado -->
   <section id="app" class="[animation:animationIn_0.8s_ease-out_0.1s_both] animate-on-scroll w-full z-30 mb-24 relative">
@@ -119,9 +119,6 @@
               <img src="{{ url_for('static', filename='logo.png') }}" alt="Epavi" class="h-5 w-auto select-none" draggable="false">
               <span class="text-[10px] uppercase font-medium text-neutral-500 tracking-wider mt-1.5">Central · produção</span>
             </div>
-            <button class="ml-auto text-neutral-600 hover:text-white transition-colors" title="Central de monitoramento">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
           </div>
 
           <div class="flex-1 space-y-8">
@@ -175,7 +172,7 @@
       </aside>
 
       <!-- Área principal -->
-      <main class="flex-1 overflow-hidden flex flex-col bg-[#0c0d10] relative min-w-0 rounded-r-3xl rounded-l-3xl lg:rounded-l-none">
+      <div class="flex-1 overflow-hidden flex flex-col bg-[#0c0d10] relative min-w-0 rounded-r-3xl rounded-l-3xl lg:rounded-l-none">
         <div class="absolute top-0 right-0 w-[800px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none translate-x-1/3 -translate-y-1/4 z-0"></div>
         <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-x-1/3 translate-y-1/4 z-0"></div>
 
@@ -206,10 +203,10 @@
               Limpar
             </button>
             <div class="flex items-center gap-4 border-l border-white/5 pl-6">
-              <button type="button" id="sino" class="relative text-neutral-400 hover:text-white transition-colors" title="Sem avisos">
+              <span id="sino" class="relative text-neutral-400" title="Sem avisos">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                 <span id="sino-dot" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full border border-[#0c0d10] hidden"></span>
-              </button>
+              </span>
             </div>
           </form>
         </header>
@@ -232,16 +229,16 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Eventos no período</span><span class="kpi-menu">⋮</span></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Eventos no período</span></div>
                 <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-eventos">–</span><span id="c-eventos"></span></div>
                 <p class="kpi-nota" id="n-eventos"></p></div>
-              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Disparos de alarme</span><span class="kpi-menu">⋮</span></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Disparos de alarme</span></div>
                 <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-disparos">–</span><span id="c-disparos"></span></div>
                 <p class="kpi-nota" id="n-disparos"></p></div>
-              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Taxa de falso alarme</span><span class="kpi-menu">⋮</span></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Taxa de falso alarme</span></div>
                 <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-falso">–</span><span id="c-falso"></span></div>
                 <p class="kpi-nota" id="n-falso"></p></div>
-              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Tempo médio de atendimento</span><span class="kpi-menu">⋮</span></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Tempo médio de atendimento</span></div>
                 <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-tempo">–</span><span id="c-tempo"></span></div>
                 <p class="kpi-nota" id="n-tempo"></p></div>
             </div>
@@ -324,7 +321,7 @@
             </div>
           </section>
         </div>
-      </main>
+      </div>
     </div>
   </section>
 
@@ -386,7 +383,6 @@
           </div>
         </div>
 
-        <div id="insight-operador" class="mt-6"></div>
       </div>
     </div>
   </section>
@@ -528,7 +524,7 @@
     </div>
     <p class="text-[13vw] leading-[0.75] font-bold text-white/5 tracking-tighter w-full select-none pointer-events-none mt-10 -mb-6">EPAVI</p>
   </footer>
-</div>
+</main>
 
 <script src="{{ url_for('static', filename='painel.js') }}"></script>
 </body>

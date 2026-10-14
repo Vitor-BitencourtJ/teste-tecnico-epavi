@@ -13,7 +13,7 @@ html { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) #000000; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,.6); }
 ::-webkit-scrollbar-corner { background: #000000; }
 /* dentro dos cartões (tabelas com rolagem horizontal, lista da fila) o trilho é o da superfície */
-.tabela-rolagem, .overflow-x-auto, .overflow-y-auto { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) #121317; }
+.overflow-x-auto, .overflow-y-auto { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) #121317; }
 .overflow-x-auto::-webkit-scrollbar, .overflow-y-auto::-webkit-scrollbar { height: 6px; width: 6px; }
 .overflow-x-auto::-webkit-scrollbar-track, .overflow-y-auto::-webkit-scrollbar-track { background: transparent; }
 .overflow-x-auto::-webkit-scrollbar-thumb, .overflow-y-auto::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border: 0; }
@@ -30,8 +30,6 @@ html { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) #000000; }
 .kpi:hover  { border-color: rgba(255,255,255,.1); }
 .kpi-topo   { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
 .kpi-rotulo { font-size: .875rem; font-weight: 500; color: #737373; }
-.kpi-menu   { color: #525252; font-size: 14px; line-height: 1; transition: color .2s; }
-.kpi:hover .kpi-menu { color: #fff; }
 .kpi-valor  { font-size: 1.875rem; line-height: 1.1; font-weight: 600; color: #fff; letter-spacing: -.025em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .kpi-nota   { margin-top: .75rem; font-size: 11px; color: #525252; min-height: 1em; }
 

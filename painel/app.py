@@ -42,8 +42,7 @@ def _data(valor: Optional[str], padrao: str) -> str:
 
 
 def _filtros(con: sqlite3.Connection) -> Filtros:
-    opcoes = consultas.opcoes(con)
-    fim_padrao = opcoes["data_maxima"] or date.today().isoformat()
+    fim_padrao = consultas.data_maxima(con) or date.today().isoformat()
     inicio_padrao = (date.fromisoformat(fim_padrao) - timedelta(days=DIAS_PADRAO - 1)).isoformat()
     inicio = _data(request.args.get("inicio"), inicio_padrao)
     fim = _data(request.args.get("fim"), fim_padrao)
@@ -58,7 +57,6 @@ def _filtros(con: sqlite3.Connection) -> Filtros:
 
 def criar_app() -> Flask:
     app = Flask(__name__)
-    app.config["JSON_SORT_KEYS"] = False
 
     @app.teardown_appcontext
     def fechar(_exc):

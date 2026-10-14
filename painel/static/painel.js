@@ -8,7 +8,7 @@
   const COR = {
     categoria: { alarme: "#e11d48", tecnico: "#d97706", informativo: "#3b82f6" },
     tecnico: { comunicacao: "#059669", energia: "#b45309", bateria: "#a855f7" },
-    serie: "#10b981", serieClara: "#34d399", destaque: "#e11d48", pico: "#b45309",
+    serie: "#10b981", destaque: "#e11d48", pico: "#b45309",
     esperado: "#facc15", texto: "#737373", eixo: "#525252", grade: "rgba(255,255,255,0.05)",
     superficie: "#121317", tooltip: "#1a1b20",
   };
@@ -165,7 +165,7 @@
     $("btn-atualizar").addEventListener("click", () => aplicar());
     // o modo monitoramento herda cidade e tipo do painel
     const ligarMonitor = () => { const q = query(false); ["link-monitor", "link-monitor-2"].forEach((id) => { const a = $(id); if (a) a.href = "/monitoramento" + (q ? "?" + q : ""); }); };
-    ["f-cidade", "f-tipo", "f-limpar"].forEach((id) => $(id).addEventListener("change", ligarMonitor));
+    ["f-cidade", "f-tipo"].forEach((id) => $(id).addEventListener("change", ligarMonitor));
     $("f-limpar").addEventListener("click", ligarMonitor);
     ligarMonitor();
     $("btn-agora").addEventListener("click", () => atualizarAgora());
@@ -209,7 +209,7 @@
     renderVolume(d.volume_por_dia, f);
     renderCategorias(d.volume_por_tipo);
     renderAgora(d.abertos, d.situacao);
-    renderPrioridade(d.tempo_por_prioridade, d.resumo);
+    renderPrioridade(d.tempo_por_prioridade);
     renderOperador(d.tempo_por_operador);
     renderTurnos(d.carga_por_turno);
     renderDesfechos(d.tempo_por_resultado);
@@ -217,7 +217,7 @@
     renderTecnicos(d.problemas_tecnicos);
     renderHora(d.disparos_por_hora);
     renderEnergia(d.energia_por_dia);
-    renderTestes(d.testes_ausentes, f);
+    renderTestes(d.testes_ausentes);
     renderQualidade(d.qualidade);
   }
 
@@ -413,7 +413,7 @@
   }
   function renderOperador(linhas) {
     const el = $("g-operador");
-    if (!linhas.length) { vazio(el); $("insight-operador").innerHTML = ""; return; }
+    if (!linhas.length) return vazio(el);
     const nomes = linhas.map((l) => l.operador);
     const razao = linhas.map((l) => l.media_seg / l.esperado_seg);
     const cores = razao.map((r) => (r >= 1.3 ? COR.destaque : COR.serie));
@@ -430,14 +430,6 @@
       xaxis: { gridcolor: COR.grade, showticklabels: false, rangemode: "tozero" },
       yaxis: { gridcolor: "rgba(0,0,0,0)", autorange: "reversed", tickfont: { size: 11, color: "#a3a3a3" }, ticksuffix: "  " },
     });
-
-    const iMax = razao.indexOf(Math.max(...razao)), iMin = razao.indexOf(Math.min(...razao));
-    const lento = linhas[iMax], rapido = linhas[iMin];
-    $("insight-operador").innerHTML = razao[iMax] >= 1.3
-      ? insight(`${esc(lento.operador)} leva ${razao[iMax].toFixed(1)}× o tempo esperado`,
-        `Mesmo descontando a mistura de prioridades que atendeu, ${esc(lento.operador)} fecha um evento em <b>${fmtDur(lento.media_seg)}</b> em média, contra <b>${fmtDur(lento.esperado_seg)}</b> esperado (${fmtN(lento.atendimentos)} atendimentos, ${fmtPct(lento.fracao_noite)} no turno da noite). ` +
-        `No outro extremo, ${esc(rapido.operador)} fecha em <b>${fmtDur(rapido.media_seg)}</b> (${razao[iMin].toFixed(2)}× o esperado). Vale olhar o turno da noite: menos gente, mais espera, ou um caso de treinamento.`, true)
-      : insight("Operadores com desempenho parecido", `Nenhum operador foge mais de 30% do tempo esperado pela mistura de prioridades que atendeu. O mais rápido é ${esc(rapido.operador)} (${fmtDur(rapido.media_seg)}).`);
   }
 
   const COR_TURNO = { dia: "#3b82f6", noite: "#059669" };

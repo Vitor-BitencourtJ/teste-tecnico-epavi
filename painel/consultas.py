@@ -16,11 +16,6 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
-CATEGORIAS = ("alarme", "tecnico", "informativo")
-STATUS_ABERTOS = ("aberto", "em_atendimento")
-CODIGOS_TECNICOS = {"E350": "comunicacao", "E301": "energia", "E302": "bateria"}
-
-
 @dataclass(frozen=True)
 class Filtros:
     inicio: str                      # 'AAAA-MM-DD' inclusive
@@ -69,6 +64,10 @@ def opcoes(con: sqlite3.Connection) -> Dict:
         "data_minima": faixa["inicio"],
         "data_maxima": faixa["fim"],
     }
+
+
+def data_maxima(con: sqlite3.Connection) -> Optional[str]:
+    return con.execute("SELECT MAX(date(data_hora)) FROM eventos").fetchone()[0]
 
 
 def situacao_captura(con: sqlite3.Connection) -> Dict:
@@ -294,7 +293,7 @@ def testes_ausentes(con: sqlite3.Connection, f: Filtros, limite: int = 10) -> Li
     dia em que não sabemos se o cliente está protegido. Conta só os dias em que
     o contrato estava ativo dentro do período filtrado.
     """
-    return _linhas(con, f"""
+    return _linhas(con, """
     WITH periodo AS (
         SELECT :inicio AS inicio, :fim AS fim
     ),
