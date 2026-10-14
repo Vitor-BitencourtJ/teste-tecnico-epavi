@@ -144,6 +144,40 @@ def abertos_agora(con: sqlite3.Connection, f: Filtros) -> List[Dict]:
     ORDER BY e.data_hora""", f.params())
 
 
+def resumo_do_dia(con: sqlite3.Connection, f: Filtros) -> Dict:
+    """Números de hoje (dia operacional, horário de Brasília) para o modo monitoramento."""
+    return _uma(con, f"""
+    SELECT COUNT(*)                                                       AS eventos,
+           SUM(t.categoria = 'alarme')                                    AS alarmes,
+           SUM(e.codigo_evento = 'E130')                                  AS disparos,
+           SUM(e.codigo_evento = 'E130' AND e.resultado = 'falso_alarme') AS disparos_falsos,
+           SUM(t.categoria = 'tecnico')                                   AS tecnicos,
+           SUM(e.status = 'encerrado')                                    AS encerrados,
+           AVG(CASE WHEN e.status = 'encerrado' THEN e.tempo_atendimento_seg END) AS tempo_medio_seg
+    {DE} WHERE date(e.data_hora) = date('now', 'localtime') AND {f.where(com_periodo=False)}""",
+                f.params())
+
+
+def eventos_ultimas_24h(con: sqlite3.Connection, f: Filtros) -> List[Dict]:
+    """Eventos por hora nas últimas 24 h, separando alarmes do resto."""
+    return _linhas(con, f"""
+    SELECT strftime('%Y-%m-%d %H', e.data_hora) AS hora,
+           COUNT(*) AS n, SUM(t.categoria = 'alarme') AS alarmes
+    {DE}
+    WHERE e.data_hora >= strftime('%Y-%m-%d %H:00:00', 'now', 'localtime', '-23 hours')
+      AND {f.where(com_periodo=False)}
+    GROUP BY 1 ORDER BY 1""", f.params())
+
+
+def ultimos_encerrados(con: sqlite3.Connection, f: Filtros, limite: int = 8) -> List[Dict]:
+    return _linhas(con, f"""
+    SELECT e.id, c.nome AS cliente, c.cidade, t.descricao, t.prioridade, e.operador,
+           e.resultado, e.tempo_atendimento_seg, e.data_hora, e.atualizado_em
+    {DE}
+    WHERE e.status = 'encerrado' AND {f.where(com_periodo=False)}
+    ORDER BY e.atualizado_em DESC LIMIT :limite""", {**f.params(), "limite": limite})
+
+
 # ---------------------------------------------------------------------------
 # 3. Atendimento
 # ---------------------------------------------------------------------------

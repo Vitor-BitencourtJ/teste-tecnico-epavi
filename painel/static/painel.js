@@ -163,6 +163,11 @@
       aplicar();
     });
     $("btn-atualizar").addEventListener("click", () => aplicar());
+    // o modo monitoramento herda cidade e tipo do painel
+    const ligarMonitor = () => { const q = query(false); ["link-monitor", "link-monitor-2"].forEach((id) => { const a = $(id); if (a) a.href = "/monitoramento" + (q ? "?" + q : ""); }); };
+    ["f-cidade", "f-tipo", "f-limpar"].forEach((id) => $(id).addEventListener("change", ligarMonitor));
+    $("f-limpar").addEventListener("click", ligarMonitor);
+    ligarMonitor();
     $("btn-agora").addEventListener("click", () => atualizarAgora());
   }
   const query = (comPeriodo = true) => {

@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Central de Monitoramento · Painel</title>
+<title>Epavi · Central de Monitoramento</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <!-- Design system "Ledger": Tailwind em tempo de execução, fontes embutidas, folha e animações do próprio design. -->
 <script src="{{ url_for('static', filename='vendor/tailwind-3.4.17.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts.css') }}">
@@ -21,11 +22,8 @@
 
   <!-- ============================================================ Navbar · pílula flutuante -->
   <nav class="flex sticky [animation:animationIn_0.8s_ease-out_0.1s_both] bg-[#000000] z-50 border-[#ffffff]/10 border rounded-full mt-4 mb-0 pt-4 pr-4 pb-4 pl-4 top-4 backdrop-blur-md items-center justify-between">
-    <a href="#topo" class="flex items-center gap-3 pl-2 pr-2">
-      <span class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
-      </span>
-      <span class="text-white font-semibold text-lg tracking-tight hidden sm:inline">Epavi</span>
+    <a href="#topo" class="inline-flex items-center h-[40px] pl-3 pr-2" aria-label="Epavi">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Epavi" class="h-6 w-auto select-none" draggable="false">
     </a>
 
     <div class="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-slate-400" id="nav-links">
@@ -45,6 +43,7 @@
         </span>
         <span id="status-pill-texto" class="text-xs font-medium text-emerald-400">carregando…</span>
       </div>
+      <a href="/monitoramento" id="link-monitor" class="hidden md:block px-5 py-2 rounded-full border text-slate-300 hover:bg-slate-900 transition-colors text-sm border-neutral-900" title="Fila da central em tela cheia, atualizada a cada 2 minutos">Modo monitoramento</a>
       <button id="btn-atualizar" class="px-5 py-2 rounded-full bg-white hover:bg-slate-200 transition-colors text-sm text-neutral-950 font-medium">Atualizar</button>
     </div>
   </nav>
@@ -117,8 +116,8 @@
         <div class="sticky top-24 flex flex-col h-[calc(100vh-7rem)] pt-6 pr-6 pb-6 pl-6">
           <div class="flex gap-3 mb-10 pl-2 items-center">
             <div class="flex flex-col">
-              <span class="text-white font-semibold text-lg tracking-tight leading-none">Epavi</span>
-              <span class="text-[10px] uppercase font-medium text-neutral-500 tracking-wider mt-1">Central · produção</span>
+              <img src="{{ url_for('static', filename='logo.png') }}" alt="Epavi" class="h-5 w-auto select-none" draggable="false">
+              <span class="text-[10px] uppercase font-medium text-neutral-500 tracking-wider mt-1.5">Central · produção</span>
             </div>
             <button class="ml-auto text-neutral-600 hover:text-white transition-colors" title="Central de monitoramento">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -314,8 +313,8 @@
                   <div class="flex justify-between"><span>Mais antigo na fila</span><span class="text-white tabular-nums" id="k-mais-antigo">–</span></div>
                 </div>
                 <div class="flex gap-3 relative z-10 mt-8">
-                  <a href="#atendimento" class="flex-1 bg-white text-neutral-900 hover:bg-neutral-200 text-xs font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> Atendimento
+                  <a href="/monitoramento" id="link-monitor-2" class="flex-1 bg-white text-neutral-900 hover:bg-neutral-200 text-xs font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg> Modo monitoramento
                   </a>
                   <button type="button" id="btn-agora" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Atualizar fila

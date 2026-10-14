@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Epavi · Modo monitoramento</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<script src="{{ url_for('static', filename='vendor/tailwind-3.4.17.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/ledger.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='painel.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='monitor.css') }}">
+<script>window.MONITOR = {{ {"opcoes": opcoes} | tojson }};</script>
+</head>
+<body class="antialiased text-slate-300 bg-[#000000] font-geist overflow-hidden h-screen">
+
+<div class="h-screen flex flex-col p-6 lg:p-8 gap-6 relative">
+  <!-- brilhos (design: app canvas glow) -->
+  <div class="fixed top-0 right-0 w-[900px] h-[700px] bg-emerald-500/5 rounded-full blur-[140px] pointer-events-none translate-x-1/3 -translate-y-1/3 z-0"></div>
+  <div class="fixed bottom-0 left-0 w-[700px] h-[700px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none -translate-x-1/3 translate-y-1/3 z-0"></div>
+
+  <!-- barra superior: pílula do design -->
+  <header class="flex [animation:animationIn_0.8s_ease-out_0.1s_both] bg-[#000000] z-10 border-[#ffffff]/10 border rounded-full pt-3 pr-3 pb-3 pl-6 backdrop-blur-md items-center justify-between gap-6 flex-none">
+    <div class="flex items-center gap-5">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Epavi" class="h-6 w-auto select-none" draggable="false">
+      <span class="text-neutral-700">/</span>
+      <span class="text-sm font-medium text-white">Modo monitoramento</span>
+      <span id="m-filtro" class="hidden md:inline text-xs text-neutral-500"></span>
+    </div>
+    <div class="flex items-center gap-4">
+      <div id="m-status" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+        <span class="relative flex h-2 w-2"><span id="m-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span id="m-dot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+        <span id="m-status-texto" class="text-xs font-medium text-emerald-400">carregando…</span>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 text-xs text-neutral-500 tabular-nums" title="próxima atualização">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span id="m-contagem">2:00</span>
+      </div>
+      <span id="m-relogio" class="text-2xl font-light text-white tabular-nums tracking-tight">--:--</span>
+      <button id="m-tela" class="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors border border-white/5" title="Tela cheia">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+      <a href="/" class="px-5 py-2 rounded-full bg-white hover:bg-slate-200 transition-colors text-sm text-neutral-950 font-medium">Painel</a>
+    </div>
+  </header>
+
+  <!-- grade principal -->
+  <main class="flex-1 min-h-0 grid grid-cols-12 gap-6 z-10 [animation:animationIn_0.8s_ease-out_0.3s_both]">
+
+    <!-- fila -->
+    <section class="col-span-12 xl:col-span-7 bg-[#0A0B0E] border border-white/10 rounded-3xl shadow-2xl flex flex-col min-h-0 overflow-hidden relative">
+      <div class="absolute -top-[30%] -left-[10%] w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div class="p-7 pb-5 border-b border-white/5 flex items-center justify-between relative">
+        <div>
+          <div class="flex items-center gap-2 mb-2"><span class="w-6 h-[1px] bg-emerald-500"></span><p class="text-xs font-semibold text-emerald-400 tracking-wide uppercase">Fila da central</p></div>
+          <h1 class="text-3xl text-white tracking-tight font-light leading-none">Abertos e em atendimento</h1>
+        </div>
+        <div id="m-fila-pill" class="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span>
+          <span id="m-fila-texto" class="text-sm font-medium text-emerald-400">–</span>
+        </div>
+      </div>
+      <div id="m-fila" class="flex-1 min-h-0 overflow-y-auto relative"></div>
+    </section>
+
+    <!-- coluna direita -->
+    <div class="col-span-12 xl:col-span-5 grid grid-rows-[auto_auto_1fr] gap-6 min-h-0">
+
+      <!-- contador grande (design: balance card) -->
+      <section class="bg-gradient-to-br from-[#1c1d24] to-[#121317] border border-white/5 rounded-3xl p-7 relative overflow-hidden shadow-lg">
+        <div class="absolute -right-16 -top-16 w-56 h-56 bg-emerald-500/5 rounded-full blur-[50px] pointer-events-none"></div>
+        <div class="flex justify-between items-start relative z-10">
+          <div>
+            <p class="text-sm font-medium text-neutral-400 mb-1">Na fila agora</p>
+            <div class="flex items-baseline gap-3 mt-2">
+              <span id="m-total" class="text-7xl font-light text-white tabular-nums tracking-tight leading-none">0</span>
+              <span class="text-base text-neutral-500">eventos</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-right">
+            <div><p class="text-[10px] uppercase tracking-wider text-neutral-600 font-semibold">Aguardando</p><p id="m-aguardando" class="text-2xl text-white font-semibold tabular-nums">0</p></div>
+            <div><p class="text-[10px] uppercase tracking-wider text-neutral-600 font-semibold">Em atendimento</p><p id="m-atendendo" class="text-2xl text-white font-semibold tabular-nums">0</p></div>
+            <div><p class="text-[10px] uppercase tracking-wider text-neutral-600 font-semibold">Crítica / alta</p><p id="m-criticos" class="text-2xl text-white font-semibold tabular-nums">0</p></div>
+            <div><p class="text-[10px] uppercase tracking-wider text-neutral-600 font-semibold">Mais antigo</p><p id="m-antigo" class="text-2xl text-white font-semibold tabular-nums">–</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- hoje -->
+      <section class="bg-[#121317] border border-white/5 rounded-3xl p-7">
+        <div class="flex justify-between items-start mb-5">
+          <span class="text-sm font-medium text-neutral-400">Hoje</span>
+          <span id="m-hoje-data" class="text-[10px] text-neutral-500"></span>
+        </div>
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div><p class="kpi-rotulo !text-xs">Eventos</p><p id="h-eventos" class="text-3xl font-semibold text-white tabular-nums tracking-tight mt-1">–</p></div>
+          <div><p class="kpi-rotulo !text-xs">Disparos</p><p id="h-disparos" class="text-3xl font-semibold text-white tabular-nums tracking-tight mt-1">–</p></div>
+          <div><p class="kpi-rotulo !text-xs">Falso alarme</p><p id="h-falsos" class="text-3xl font-semibold text-white tabular-nums tracking-tight mt-1">–</p></div>
+          <div><p class="kpi-rotulo !text-xs">Tempo médio</p><p id="h-tempo" class="text-3xl font-semibold text-white tabular-nums tracking-tight mt-1 whitespace-nowrap">–</p></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-medium text-neutral-500 uppercase tracking-wide mb-2">
+          <span class="text-emerald-500/80">Últimas 24 horas</span><span id="m-24h-legenda">por hora · alarmes em destaque</span>
+        </div>
+        <div id="m-24h" class="h-16 flex items-end gap-1"></div>
+        <div class="flex justify-between text-[10px] text-neutral-600 mt-1.5"><span id="m-24h-ini">–</span><span>agora</span></div>
+      </section>
+
+      <!-- últimos encerrados -->
+      <section class="bg-[#121317] border border-white/5 rounded-3xl flex flex-col min-h-0 overflow-hidden">
+        <div class="p-6 pb-4 border-b border-white/5 flex items-center justify-between flex-none">
+          <h3 class="text-sm font-medium text-white">Últimos encerrados</h3>
+          <span class="text-[10px] text-neutral-500">mais recente primeiro</span>
+        </div>
+        <div id="m-encerrados" class="flex-1 min-h-0 overflow-y-auto"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='monitor.js') }}"></script>
+</body>
+</html>

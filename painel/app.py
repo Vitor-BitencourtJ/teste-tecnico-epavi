@@ -104,6 +104,23 @@ def criar_app() -> Flask:
             "situacao": consultas.situacao_captura(con),
         })
 
+    @app.get("/monitoramento")
+    def monitoramento():
+        con = _con()
+        return render_template("monitor.html", opcoes=consultas.opcoes(con))
+
+    @app.get("/api/monitor")
+    def api_monitor():
+        con = _con()
+        f = _filtros(con)
+        return jsonify({
+            "abertos": consultas.abertos_agora(con, f),
+            "situacao": consultas.situacao_captura(con),
+            "hoje": consultas.resumo_do_dia(con, f),
+            "ultimas_24h": consultas.eventos_ultimas_24h(con, f),
+            "encerrados": consultas.ultimos_encerrados(con, f),
+        })
+
     @app.get("/api/agora")
     def api_agora():
         con = _con()
