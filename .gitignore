@@ -16,11 +16,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# anotacoes pessoais de estudo e documentos ainda em revisao (entram num commit final)
+# anotacoes pessoais de estudo
 estudar.md
-README.md
-RELATORIO.md
-docs/
 
 # editor / sistema
 .vscode/
