@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Monitoramento · Painel</title>
+<!-- Design system "Ledger": Tailwind em tempo de execução, fontes embutidas, folha e animações do próprio design. -->
+<script src="{{ url_for('static', filename='vendor/tailwind-3.4.17.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/ledger.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='painel.css') }}">
+<script src="{{ url_for('static', filename='vendor/animate-on-scroll.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/plotly.min.js') }}"></script>
+<script>
+  window.PAINEL = {{ {"opcoes": opcoes, "situacao": situacao, "dias_padrao": dias_padrao} | tojson }};
+</script>
+</head>
+<body class="antialiased selection:bg-emerald-500 selection:text-white text-slate-300 bg-[#000000] font-geist">
+
+<div class="md:px-8 lg:px-12 max-w-[1400px] mr-auto ml-auto pr-6 pl-6">
+
+  <!-- ============================================================ Navbar · pílula flutuante -->
+  <nav class="flex sticky [animation:animationIn_0.8s_ease-out_0.1s_both] bg-[#000000] z-50 border-[#ffffff]/10 border rounded-full mt-4 mb-0 pt-4 pr-4 pb-4 pl-4 top-4 backdrop-blur-md items-center justify-between">
+    <a href="#topo" class="flex items-center gap-3 pl-2 pr-2">
+      <span class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+      </span>
+      <span class="text-white font-semibold text-lg tracking-tight hidden sm:inline">Epavi</span>
+    </a>
+
+    <div class="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-slate-400" id="nav-links">
+      <a href="#visao-geral" class="nav-link transition-colors hover:text-emerald-400">Visão geral</a>
+      <a href="#agora" class="nav-link transition-colors hover:text-emerald-400 flex items-center gap-1.5">Agora <span id="nav-abertos" class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-neutral-400 tabular-nums leading-none">–</span></a>
+      <a href="#atendimento" class="nav-link transition-colors hover:text-emerald-400">Atendimento</a>
+      <a href="#clientes" class="nav-link transition-colors hover:text-emerald-400">Clientes</a>
+      <a href="#insights" class="nav-link transition-colors hover:text-emerald-400">Insights</a>
+      <a href="#qualidade" class="nav-link transition-colors hover:text-emerald-400">Qualidade</a>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div id="status-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
+        <span class="relative flex h-2 w-2">
+          <span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span id="status-pill-texto" class="text-xs font-medium text-emerald-400">carregando…</span>
+      </div>
+      <button id="btn-atualizar" class="px-5 py-2 rounded-full bg-white hover:bg-slate-200 transition-colors text-sm text-neutral-950 font-medium">Atualizar</button>
+    </div>
+  </nav>
+
+  <!-- ============================================================ Hero -->
+  <main id="topo" class="grid grid-cols-1 lg:grid-cols-2 pt-28 pb-28 relative gap-x-16 gap-y-16 items-center">
+    <div class="absolute inset-0 -z-10 w-full h-full overflow-hidden">
+      <div data-us-project="vLGJIxHINq2tCeLOR9Dt" data-us-project-src="ledger-us-scene" class="absolute w-full h-full left-0 top-0 -z-10 opacity-60"></div>
+      <script src="{{ url_for('static', filename='vendor/unicorn-scene.js') }}"></script>
+      <script>!function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="{{ url_for('static', filename='vendor/unicornStudio.umd.js') }}",i.onload=function(){try{window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)}catch(e){console.warn("cena de fundo desativada:",e)}},(document.head||document.body).appendChild(i)}}();</script>
+    </div>
+
+    <div class="flex flex-col gap-8 max-w-2xl items-start">
+      <div class="inline-flex [animation:animationIn_0.8s_ease-out_0.2s_both] bg-slate-900 border-neutral-900 border rounded-full pt-1.5 pr-5 pb-1.5 pl-1.5 gap-3 items-center">
+        <span class="bg-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-medium">Ao vivo</span>
+        <span class="text-slate-300 text-sm" id="hero-pill">carregando…</span>
+      </div>
+      <h1 class="md:text-7xl leading-[1.1] [animation:animationIn_0.8s_ease-out_0.3s_both] text-5xl font-light text-white tracking-tight">
+        Central de<br>monitoramento
+      </h1>
+      <p class="leading-relaxed [animation:animationIn_0.8s_ease-out_0.4s_both] text-lg text-slate-400 max-w-lg">
+        Tudo que os painéis de alarme mandaram para a central: capturado da API, limpo e resumido
+        para quem precisa decidir. Sem planilha montada à mão.
+      </p>
+      <div class="flex flex-wrap [animation:animationIn_0.8s_ease-out_0.5s_both] pt-2 gap-4 items-center">
+        <a href="#agora" class="shiny-cta inline-block focus:outline-none"><span>Ver a fila agora</span></a>
+        <a href="#qualidade" class="group px-8 py-4 rounded-full border text-slate-300 text-lg hover:bg-slate-900 transition-all flex items-center gap-3 border-neutral-900">
+          Qualidade dos dados
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-white transition-colors"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Cartão de métrica (hero) -->
+    <div class="lg:justify-self-end flex flex-col overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group hover:border-emerald-500/20 [animation:animationIn_0.8s_ease-out_0.6s_both] bg-[#0A0B0E] w-[32rem] max-w-full h-fit z-10 border-white/10 border rounded-[1.2em] relative shadow-2xl">
+      <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent pointer-events-none"></div>
+      <div class="z-10 flex flex-col h-full pt-8 pr-8 pb-8 pl-8 relative">
+        <div class="flex items-start justify-between mb-8 gap-4">
+          <div class="flex items-baseline gap-3 flex-wrap">
+            <span id="hero-metrica" class="text-6xl text-white tabular-nums tracking-tight font-light">0</span>
+            <span class="text-base text-neutral-500" id="hero-metrica-rotulo">eventos no período</span>
+          </div>
+          <a href="#visao-geral" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors border border-white/5 shadow-lg flex-none" title="Ver visão geral">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </a>
+        </div>
+        <div class="flex-1 flex flex-col gap-2 relative">
+          <div class="flex justify-between text-xs font-medium text-neutral-400 uppercase tracking-wide px-1">
+            <span class="text-emerald-500/80">Pico diário</span>
+            <span id="hero-pico">–</span>
+          </div>
+          <div class="h-44 flex items-end justify-between gap-3 relative mt-1" id="hero-barras">
+            <div class="absolute top-0 left-0 right-0 h-px border-t border-dashed border-white/20 w-full z-0"></div>
+          </div>
+        </div>
+        <div class="flex items-end justify-between mt-10 pt-6 border-t border-white/5">
+          <div class="flex items-center gap-2"><span class="text-white text-xl tabular-nums" id="hero-disparos">–</span><span class="text-neutral-500 text-sm">disparos de alarme</span></div>
+          <div class="flex items-center justify-end gap-2"><span class="text-white text-xl tabular-nums" id="hero-falsos">–</span><span class="text-neutral-500 text-sm">falso alarme</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================ Dashboard · cartão emoldurado -->
+  <section id="app" class="[animation:animationIn_0.8s_ease-out_0.1s_both] animate-on-scroll w-full z-30 mb-24 relative">
+    <div class="flex bg-[#0A0B0E] border-white/10 border rounded-3xl relative shadow-2xl">
+
+      <!-- Sidebar -->
+      <aside class="w-72 bg-[#0c0d10] border-r border-white/5 flex-col hidden lg:flex relative z-20 rounded-l-3xl">
+        <div class="sticky top-24 flex flex-col h-[calc(100vh-7rem)] pt-6 pr-6 pb-6 pl-6">
+          <div class="flex gap-3 mb-10 pl-2 items-center">
+            <div class="flex flex-col">
+              <span class="text-white font-semibold text-lg tracking-tight leading-none">Epavi</span>
+              <span class="text-[10px] uppercase font-medium text-neutral-500 tracking-wider mt-1">Central · produção</span>
+            </div>
+            <button class="ml-auto text-neutral-600 hover:text-white transition-colors" title="Central de monitoramento">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+
+          <div class="flex-1 space-y-8">
+            <div class="space-y-1">
+              <div class="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-3 px-4">Painel</div>
+              <a href="#visao-geral" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium border border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                Visão geral
+              </a>
+              <a href="#agora" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium border border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Agora
+              </a>
+              <a href="#atendimento" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium border border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                Atendimento
+              </a>
+              <a href="#clientes" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium border border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Clientes
+              </a>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between px-4 mb-3"><div class="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider">Análise</div></div>
+              <a href="#insights" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium border border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                Insights
+              </a>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between px-4 mb-3"><div class="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider">Integração</div></div>
+              <a href="#qualidade" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium border border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+                Qualidade dos dados
+              </a>
+            </div>
+          </div>
+
+          <div class="mt-auto pt-6 border-t border-white/5">
+            <div class="flex items-center gap-3">
+              <div class="flex w-8 h-8 rounded-full border border-white/10 bg-white/5 items-center justify-center">
+                <span class="relative flex h-2 w-2"><span id="status-dot-2" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+              </div>
+              <div class="flex flex-col">
+                <span id="status-titulo" class="text-xs font-medium text-white">Dados da captura</span>
+                <span id="status-sub" class="text-[10px] text-neutral-500">carregando…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Área principal -->
+      <main class="flex-1 overflow-hidden flex flex-col bg-[#0c0d10] relative min-w-0 rounded-r-3xl rounded-l-3xl lg:rounded-l-none">
+        <div class="absolute top-0 right-0 w-[800px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none translate-x-1/3 -translate-y-1/4 z-0"></div>
+        <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-x-1/3 translate-y-1/4 z-0"></div>
+
+        <!-- Header: breadcrumb e filtros -->
+        <header class="flex z-30 bg-[#0c0d10]/80 min-h-20 border-white/5 border-b pr-8 pl-8 py-3 backdrop-blur-md items-center justify-between gap-4 flex-wrap">
+          <div class="flex gap-3 text-sm items-center">
+            <span class="text-neutral-500">Epavi</span>
+            <span class="text-neutral-700">/</span>
+            <span class="text-white font-medium" id="breadcrumb">Visão geral</span>
+          </div>
+
+          <form id="filtros" class="flex items-center gap-4 flex-wrap" onsubmit="return false">
+            <div class="flex items-center gap-1.5">
+              <input type="date" id="f-inicio" class="campo w-[8.4rem]" min="{{ opcoes.data_minima }}" max="{{ opcoes.data_maxima }}" aria-label="Data inicial">
+              <span class="text-neutral-700 text-xs">–</span>
+              <input type="date" id="f-fim" class="campo w-[8.4rem]" min="{{ opcoes.data_minima }}" max="{{ opcoes.data_maxima }}" aria-label="Data final">
+            </div>
+            <select id="f-cidade" class="campo campo-select" aria-label="Cidade">
+              <option value="">Todas as cidades</option>
+              {% for c in opcoes.cidades %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+            </select>
+            <select id="f-tipo" class="campo campo-select" aria-label="Tipo de cliente">
+              <option value="">Todos os tipos</option>
+              {% for t in opcoes.tipos %}<option value="{{ t }}">{{ {'residencial':'Residencial','comercial':'Comercial','agencia_bancaria':'Agência bancária','industrial':'Industrial'}.get(t, t) }}</option>{% endfor %}
+            </select>
+            <button type="button" id="f-limpar" class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-[0_0_15px_-3px_rgba(16,185,129,0.3)] border border-emerald-400/20">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Limpar
+            </button>
+            <div class="flex items-center gap-4 border-l border-white/5 pl-6">
+              <button type="button" id="sino" class="relative text-neutral-400 hover:text-white transition-colors" title="Sem avisos">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                <span id="sino-dot" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full border border-[#0c0d10] hidden"></span>
+              </button>
+            </div>
+          </form>
+        </header>
+
+        <div class="p-8 relative z-10">
+
+          <!-- ================================================== 01 Visão geral -->
+          <section id="visao-geral" data-titulo="Visão geral">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h1 class="text-2xl text-white font-semibold tracking-tight">Visão geral</h1>
+                <p class="text-xs text-neutral-500 mt-1" id="periodo-legenda">Carregando…</p>
+              </div>
+              <div class="flex gap-2 bg-[#121317] border-white/5 border rounded-lg p-1 items-center" id="periodos">
+                <button type="button" data-dias="7"  class="seg px-3 py-1 text-xs font-medium text-neutral-500 hover:text-white transition-colors rounded-md">7d</button>
+                <button type="button" data-dias="30" class="seg px-3 py-1 text-xs font-medium text-neutral-500 hover:text-white transition-colors rounded-md">30d</button>
+                <button type="button" data-dias="90" class="seg px-3 py-1 text-xs font-medium text-neutral-500 hover:text-white transition-colors rounded-md">90d</button>
+                <button type="button" data-dias="0"  class="seg px-3 py-1 text-xs font-medium text-neutral-500 hover:text-white transition-colors rounded-md">Tudo</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Eventos no período</span><span class="kpi-menu">⋮</span></div>
+                <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-eventos">–</span><span id="c-eventos"></span></div>
+                <p class="kpi-nota" id="n-eventos"></p></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Disparos de alarme</span><span class="kpi-menu">⋮</span></div>
+                <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-disparos">–</span><span id="c-disparos"></span></div>
+                <p class="kpi-nota" id="n-disparos"></p></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Taxa de falso alarme</span><span class="kpi-menu">⋮</span></div>
+                <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-falso">–</span><span id="c-falso"></span></div>
+                <p class="kpi-nota" id="n-falso"></p></div>
+              <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Tempo médio de atendimento</span><span class="kpi-menu">⋮</span></div>
+                <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="k-tempo">–</span><span id="c-tempo"></span></div>
+                <p class="kpi-nota" id="n-tempo"></p></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="cartao lg:col-span-2 flex flex-col">
+                <div class="flex justify-between items-start mb-2 gap-4">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm font-medium text-neutral-500">Eventos por dia</span>
+                    <span class="text-3xl text-white font-semibold tracking-tight" id="vol-total">–</span>
+                  </div>
+                  <div class="legenda" id="leg-categorias"></div>
+                </div>
+                <div class="chart h-56" id="g-volume"></div>
+              </div>
+
+              <div class="cartao flex flex-col">
+                <div class="flex justify-between items-start mb-4">
+                  <span class="text-sm font-medium text-neutral-400">Por categoria</span>
+                  <span class="text-[10px] text-neutral-500" id="cat-total"></span>
+                </div>
+                <div class="flex h-1.5 w-full rounded-full overflow-hidden bg-white/5 gap-px" id="cat-barra"></div>
+                <div class="flex justify-between mt-2 text-[10px] text-neutral-500" id="cat-legenda"></div>
+                <div class="mt-6 pt-4 border-t border-white/5 flex-1">
+                  <div class="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-3">Tipos mais frequentes</div>
+                  <div class="flex flex-col gap-2.5" id="lista-tipos"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ================================================== 02 Agora -->
+          <section id="agora" data-titulo="Agora" class="mt-12">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 class="text-2xl text-white font-semibold tracking-tight">Agora</h2>
+                <p class="text-xs text-neutral-500 mt-1">Eventos abertos ou em atendimento na última captura. Atualiza sozinho a cada minuto; o período não se aplica aqui.</p>
+              </div>
+              <div id="agora-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm w-fit">
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                <span class="text-xs font-medium text-emerald-400" id="agora-texto">–</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="bg-[#121317] border border-white/5 rounded-2xl flex flex-col relative overflow-hidden lg:col-span-2 hover:border-white/10 transition-colors">
+                <div class="p-6 pb-4 border-b border-white/5 flex items-center justify-between">
+                  <h3 class="text-sm font-medium text-white">Fila da central</h3>
+                  <span class="text-[10px] text-neutral-500">mais antigo primeiro</span>
+                </div>
+                <div class="flex flex-col" id="lista-abertos"></div>
+              </div>
+
+              <div class="bg-gradient-to-br from-[#1c1d24] to-[#121317] border border-white/5 rounded-2xl p-6 relative overflow-hidden group hover:border-white/10 transition-all shadow-lg">
+                <div class="absolute -right-12 -top-12 w-40 h-40 bg-emerald-500/5 rounded-full blur-[40px] pointer-events-none"></div>
+                <div class="flex justify-between items-start mb-8 relative z-10">
+                  <div>
+                    <p class="text-sm font-medium text-neutral-400 mb-1">Na fila agora</p>
+                    <span class="text-xs font-medium text-neutral-500">todas as prioridades</span>
+                  </div>
+                  <div class="p-2 rounded-lg bg-white/5 border border-white/5 text-white shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  </div>
+                </div>
+                <div class="mb-8 relative z-10"><h2 class="text-4xl font-semibold text-white tracking-tight" id="k-abertos">–</h2></div>
+                <div class="space-y-3 text-xs text-neutral-400 relative z-10">
+                  <div class="flex justify-between"><span>Aguardando atendimento</span><span class="text-white tabular-nums" id="k-aguardando">–</span></div>
+                  <div class="flex justify-between"><span>Em atendimento</span><span class="text-white tabular-nums" id="k-em-atendimento">–</span></div>
+                  <div class="flex justify-between"><span>Mais antigo na fila</span><span class="text-white tabular-nums" id="k-mais-antigo">–</span></div>
+                </div>
+                <div class="flex gap-3 relative z-10 mt-8">
+                  <a href="#atendimento" class="flex-1 bg-white text-neutral-900 hover:bg-neutral-200 text-xs font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> Atendimento
+                  </a>
+                  <button type="button" id="btn-agora" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Atualizar fila
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ============================================================ 03 Atendimento -->
+  <section id="atendimento" data-titulo="Atendimento" class="quadro [animation:animationIn_0.8s_ease-out_0.1s_both] animate-on-scroll" style="--border-gradient: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0), rgba(255,255,255,0.1)); --border-radius-before: 24px">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12 gap-6">
+      <div>
+        <div class="flex items-center gap-2 mb-4"><span class="w-6 h-[1px] bg-emerald-500"></span><p class="text-sm font-semibold text-emerald-400 tracking-wide uppercase">03 · Atendimento</p></div>
+        <h2 class="sm:text-5xl text-3xl text-white tracking-tight font-light leading-[1.1]">Quanto tempo a central leva<br class="hidden sm:block"> para encerrar um evento</h2>
+        <p class="sm:text-lg max-w-[60ch] text-base text-slate-400 mt-6 font-light">Só eventos encerrados com tempo informado. Eventos informativos (arme, desarme, teste) não passam por atendimento.</p>
+      </div>
+      <div class="flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 w-fit flex-none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+        <span class="text-xs text-slate-300 font-medium" id="pill-tempo">–</span>
+      </div>
+    </div>
+
+    <div class="overflow-hidden group bg-[#0A0B0E] w-full border-white/10 border rounded-3xl relative shadow-2xl hover:border-white/20 transition-all duration-300">
+      <div class="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div class="absolute -bottom-[20%] -right-[10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div class="md:p-10 p-6 relative">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="cartao flex flex-col">
+            <div class="flex flex-col gap-1 mb-2">
+              <span class="text-sm font-medium text-neutral-500">Tempo médio por prioridade</span>
+              <span class="text-xs text-neutral-600">Quanto mais crítico, mais rápido deve ser.</span>
+            </div>
+            <div class="chart h-56" id="g-prioridade"></div>
+          </div>
+          <div class="cartao lg:col-span-2 flex flex-col">
+            <div class="flex justify-between items-start mb-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium text-neutral-500">Tempo médio por operador</span>
+                <span class="text-xs text-neutral-600">A barra é a média real. O traço é o esperado pela mistura de prioridades que o operador atendeu.</span>
+              </div>
+              <div class="legenda">
+                <span class="leg-item"><span class="leg-cor bg-emerald-500"></span>Média real</span>
+                <span class="leg-item"><span class="leg-traco"></span>Esperado</span>
+              </div>
+            </div>
+            <div class="chart h-56" id="g-operador"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          <div class="cartao flex flex-col">
+            <div class="flex justify-between items-start mb-5">
+              <span class="text-sm font-medium text-neutral-400">Carga por turno</span>
+              <span class="text-[10px] text-neutral-500">dia 7h–19h · noite 19h–7h</span>
+            </div>
+            <div id="carga-turno" class="flex flex-col gap-6 flex-1 justify-center"></div>
+          </div>
+          <div class="cartao lg:col-span-2 flex flex-col">
+            <div class="flex flex-col gap-1 mb-5">
+              <span class="text-sm font-medium text-neutral-400">Para onde vai o tempo de atendimento</span>
+              <span class="text-xs text-neutral-600" id="txt-desfechos">–</span>
+            </div>
+            <div id="lista-desfechos" class="flex flex-col gap-3"></div>
+          </div>
+        </div>
+
+        <div id="insight-operador" class="mt-6"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 04 Clientes -->
+  <section id="clientes" data-titulo="Clientes" class="quadro [animation:animationIn_0.8s_ease-out_0.1s_both] animate-on-scroll" style="--border-gradient: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0), rgba(255,255,255,0.1)); --border-radius-before: 24px">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12 gap-6">
+      <div>
+        <div class="flex items-center gap-2 mb-4"><span class="w-6 h-[1px] bg-emerald-500"></span><p class="text-sm font-semibold text-emerald-400 tracking-wide uppercase">04 · Clientes</p></div>
+        <h2 class="sm:text-5xl text-3xl text-white tracking-tight font-light leading-[1.1]">Quem mais aciona a central</h2>
+        <p class="sm:text-lg max-w-[60ch] text-base text-slate-400 mt-6 font-light">Disparos de intrusão e problemas técnicos (comunicação, energia, bateria) por cliente, no período filtrado.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+      <div class="overflow-hidden group bg-[#0A0B0E] border-white/10 border rounded-3xl relative shadow-2xl hover:border-white/20 transition-all duration-300">
+        <div class="absolute -top-[20%] -left-[10%] w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="p-6 pb-4 border-b border-white/5 flex items-center justify-between relative">
+          <h3 class="text-xl text-white font-semibold tracking-tight">Mais disparos de alarme</h3>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">top 10</span>
+        </div>
+        <div class="overflow-x-auto relative"><table class="tabela" id="t-disparos"></table></div>
+      </div>
+      <div class="overflow-hidden group bg-[#0A0B0E] border-white/10 border rounded-3xl relative shadow-2xl hover:border-white/20 transition-all duration-300">
+        <div class="absolute -bottom-[20%] -right-[10%] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="p-6 pb-4 border-b border-white/5 flex items-center justify-between gap-4 relative">
+          <h3 class="text-xl text-white font-semibold tracking-tight">Problemas técnicos recorrentes</h3>
+          <div class="legenda" id="leg-tecnicos"></div>
+        </div>
+        <div class="overflow-x-auto relative"><table class="tabela" id="t-tecnicos"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 05 Insights -->
+  <section id="insights" data-titulo="Insights" class="quadro [animation:animationIn_0.8s_ease-out_0.1s_both] animate-on-scroll" style="--border-gradient: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0), rgba(255,255,255,0.1)); --border-radius-before: 24px">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12 gap-6">
+      <div>
+        <div class="flex items-center gap-2 mb-4"><span class="w-6 h-[1px] bg-emerald-500"></span><p class="text-sm font-semibold text-emerald-400 tracking-wide uppercase">05 · Insights</p></div>
+        <h2 class="sm:text-5xl text-3xl text-white tracking-tight font-light leading-[1.1]">O que os dados mostram<br class="hidden sm:block"> sem ninguém perguntar</h2>
+        <p class="sm:text-lg max-w-[60ch] text-base text-slate-400 mt-6 font-light">Padrões que a gestão deveria conhecer. Cada um é recalculado com os filtros do painel.</p>
+      </div>
+    </div>
+
+    <div class="overflow-hidden group bg-[#0A0B0E] w-full border-white/10 border rounded-3xl relative shadow-2xl hover:border-white/20 transition-all duration-300">
+      <div class="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div class="absolute -bottom-[20%] -right-[10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div class="md:p-10 p-6 relative space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="cartao flex flex-col">
+            <div class="flex flex-col gap-1 mb-2">
+              <span class="text-sm font-medium text-neutral-500">Disparos por hora do dia</span>
+              <span class="text-xs text-neutral-600" id="txt-hora">–</span>
+            </div>
+            <div class="chart h-52" id="g-hora"></div>
+          </div>
+          <div class="cartao lg:col-span-2 flex flex-col">
+            <div class="flex justify-between items-start mb-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium text-neutral-500">Faltas de energia por dia</span>
+                <span class="text-xs text-neutral-600" id="txt-energia">–</span>
+              </div>
+              <div class="legenda flex-none">
+                <span class="leg-item"><span class="leg-cor bg-emerald-600"></span>Dia normal</span>
+                <span class="leg-item"><span class="leg-cor" style="background:#b45309"></span>Pico (provável temporal)</span>
+              </div>
+            </div>
+            <div class="chart h-52" id="g-energia"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-[#121317] border border-white/5 rounded-2xl flex flex-col relative overflow-hidden lg:col-span-2 hover:border-white/10 transition-colors">
+            <div class="p-6 pb-4 border-b border-white/5 flex items-center justify-between">
+              <h3 class="text-sm font-medium text-white">Clientes que ficaram dias sem o teste periódico</h3>
+              <span class="text-[10px] text-neutral-500">o painel deve testar a comunicação todo dia</span>
+            </div>
+            <div class="overflow-x-auto"><table class="tabela" id="t-testes"></table></div>
+          </div>
+          <div id="insight-testes"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 06 Qualidade -->
+  <section id="qualidade" data-titulo="Qualidade dos dados" class="quadro [animation:animationIn_0.8s_ease-out_0.1s_both] animate-on-scroll" style="--border-gradient: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0), rgba(255,255,255,0.1)); --border-radius-before: 24px">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12 gap-6">
+      <div>
+        <div class="flex items-center gap-2 mb-4"><span class="w-6 h-[1px] bg-emerald-500"></span><p class="text-sm font-semibold text-emerald-400 tracking-wide uppercase">06 · Integração</p></div>
+        <h2 class="sm:text-5xl text-3xl text-white tracking-tight font-light leading-[1.1]">Qualidade dos dados<br class="hidden sm:block"> e saúde da captura</h2>
+        <p class="sm:text-lg max-w-[60ch] text-base text-slate-400 mt-6 font-light">Tudo que a captura precisou corrigir ou recusar antes de gravar. Independe dos filtros.</p>
+      </div>
+    </div>
+
+    <div class="overflow-hidden group bg-[#0A0B0E] w-full border-white/10 border rounded-3xl relative shadow-2xl hover:border-white/20 transition-all duration-300">
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_40%)]"></div>
+      </div>
+      <div class="md:p-10 p-6 relative space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Eventos com alguma correção</span></div>
+            <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="q-eventos">–</span><span id="q-eventos-chip"></span></div>
+            <p class="kpi-nota" id="q-eventos-nota"></p></div>
+          <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Clientes com correção</span></div>
+            <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="q-clientes">–</span><span id="q-clientes-chip"></span></div>
+            <p class="kpi-nota" id="q-clientes-nota"></p></div>
+          <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Eventos sem cliente cadastrado</span></div>
+            <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="q-sem-cliente">–</span></div>
+            <p class="kpi-nota">Mantidos no volume geral, fora dos rankings</p></div>
+          <div class="kpi"><div class="kpi-topo"><span class="kpi-rotulo">Registros recusados</span></div>
+            <div class="flex flex-wrap items-end justify-between gap-3"><span class="kpi-valor" id="q-rejeitados">–</span></div>
+            <p class="kpi-nota">Nem a limpeza conseguiu aproveitar</p></div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="cartao flex flex-col">
+            <div class="flex flex-col gap-1 mb-2">
+              <span class="text-sm font-medium text-neutral-500">Correções por tipo</span>
+              <span class="text-xs text-neutral-600">Passe o mouse para ver um exemplo do valor original.</span>
+            </div>
+            <div class="chart h-72" id="g-problemas"></div>
+          </div>
+          <div class="bg-[#121317] border border-white/5 rounded-2xl flex flex-col relative overflow-hidden lg:col-span-2 hover:border-white/10 transition-colors">
+            <div class="p-6 pb-4 border-b border-white/5 flex items-center justify-between">
+              <h3 class="text-sm font-medium text-white">Execuções da captura</h3>
+              <span class="text-[10px] text-neutral-500">últimas 12</span>
+            </div>
+            <div class="overflow-x-auto"><table class="tabela" id="t-execucoes"></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Rodapé -->
+  <footer class="pt-8 pb-10 border-t border-white/5 relative overflow-hidden">
+    <div class="flex flex-wrap justify-between gap-4 text-xs text-neutral-500 relative z-10">
+      <span>Dados fictícios da API simulada da central · horários em Brasília</span>
+      <span id="rodape-filtros"></span>
+    </div>
+    <p class="text-[13vw] leading-[0.75] font-bold text-white/5 tracking-tighter w-full select-none pointer-events-none mt-10 -mb-6">EPAVI</p>
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='painel.js') }}"></script>
+</body>
+</html>

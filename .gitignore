@@ -1,0 +1,26 @@
+﻿# gerados pela captura e pelo painel (o enunciado pede para nao versionar o banco)
+dados/
+logs/
+*.db
+*.db-wal
+*.db-shm
+
+# ambiente e caches
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# anotacoes pessoais de estudo e documentos ainda em revisao (entram num commit final)
+estudar.md
+README.md
+RELATORIO.md
+docs/
+
+# editor / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

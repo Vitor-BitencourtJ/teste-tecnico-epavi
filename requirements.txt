@@ -1,0 +1,4 @@
+requests>=2.31
+flask>=3.0
+plotly>=5.18
+pytest>=7.0
