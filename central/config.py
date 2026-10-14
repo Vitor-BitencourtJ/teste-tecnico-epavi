@@ -1,16 +1,21 @@
 """Configuração do projeto.
 
-Tudo tem um valor padrão que funciona com a API mock rodando localmente.
-Qualquer valor pode ser sobrescrito por variável de ambiente, para não
-precisar mexer no código ao apontar para outro servidor.
+Os valores vêm de variáveis de ambiente, lidas também do arquivo ``.env`` na
+raiz (copie ``.env.example`` para ``.env``). O ``.env`` não vai para o git.
+
+A chave da API é o único valor sem padrão: não fica escrita no código. O resto
+tem um padrão que funciona com a API mock rodando localmente.
 """
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 RAIZ = Path(__file__).resolve().parent.parent
+load_dotenv(RAIZ / ".env")  # variáveis já definidas no ambiente têm prioridade
 
 API_URL = os.environ.get("CENTRAL_API_URL", "http://127.0.0.1:8000")
-API_KEY = os.environ.get("CENTRAL_API_KEY", "epavi-teste-2026")
+API_KEY = os.environ.get("CENTRAL_API_KEY", "")
 
 # Segundos de espera por resposta. A API mock às vezes demora 6 s de
 # propósito, então o timeout precisa ser folgado em relação a isso.

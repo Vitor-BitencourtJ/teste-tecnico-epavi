@@ -1,4 +1,5 @@
 requests>=2.31
+python-dotenv>=1.0
 flask>=3.0
 plotly>=5.18
 pytest>=7.0

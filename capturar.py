@@ -57,6 +57,9 @@ def main() -> int:
     args = parser.parse_args()
 
     configurar_logs(args.verboso)
+    if not config.API_KEY:
+        log.error("CENTRAL_API_KEY nao definida. Copie .env.example para .env e preencha a chave.")
+        return 2
     if args.recriar:
         banco.apagar(config.CAMINHO_BANCO)
         log.info("banco %s apagado", config.CAMINHO_BANCO)

@@ -5,6 +5,9 @@ logs/
 *.db-wal
 *.db-shm
 
+# configuracao local com segredos (o modelo versionado e o .env.example)
+.env
+
 # ambiente e caches
 .venv/
 venv/
