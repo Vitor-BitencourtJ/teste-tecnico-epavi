@@ -30,3 +30,7 @@ API_POR_PAGINA = int(os.environ.get("CENTRAL_API_POR_PAGINA", "200"))
 
 CAMINHO_BANCO = Path(os.environ.get("CENTRAL_BANCO", RAIZ / "dados" / "central.db"))
 PASTA_LOGS = Path(os.environ.get("CENTRAL_LOGS", RAIZ / "logs"))
+
+# De quantos em quantos segundos o painel e o modo monitoramento recarregam os dados.
+# O iniciar.py ajusta para o mesmo valor do intervalo de captura.
+PAINEL_ATUALIZAR_SEG = int(os.environ.get("CENTRAL_PAINEL_ATUALIZAR_SEG", "120"))

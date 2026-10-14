@@ -1,7 +1,7 @@
 """Sobe a captura contínua e o painel com um só comando.
 
     python iniciar.py                    # captura a cada 2 min + painel em http://127.0.0.1:8050
-    python iniciar.py --intervalo 300    # captura a cada 5 min
+    python iniciar.py --intervalo 60     # captura e telas a cada 1 min (mínimo: 30 s)
     python iniciar.py --porta 9000
     python iniciar.py --recriar          # apaga o banco e captura tudo de novo antes de subir
 
@@ -14,6 +14,7 @@ ar mostrando o último dado. Este script só os inicia juntos e fecha os dois no
 Ctrl+C. Em produção, prefira o agendador do sistema (ver README).
 """
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -40,6 +41,9 @@ def main() -> int:
     parser.add_argument("--recriar", action="store_true",
                         help="apaga o banco e faz uma captura completa antes de subir")
     args = parser.parse_args()
+    if args.intervalo < 30:
+        print("O intervalo mínimo é 30 segundos (a API aceita 5 requisições por segundo).")
+        return 2
 
     if not config.API_KEY:
         print("CENTRAL_API_KEY não definida. Copie .env.example para .env e preencha a chave.")
@@ -58,11 +62,13 @@ def main() -> int:
 
     processos = {
         "captura": subprocess.Popen([sys.executable, "capturar.py", "--a-cada", str(args.intervalo)], cwd=RAIZ),
-        "painel": subprocess.Popen([sys.executable, "painel.py", "--porta", str(args.porta)], cwd=RAIZ),
+        # o painel e o modo monitoramento recarregam no mesmo ritmo da captura
+        "painel": subprocess.Popen([sys.executable, "painel.py", "--porta", str(args.porta)], cwd=RAIZ,
+                                   env={**os.environ, "CENTRAL_PAINEL_ATUALIZAR_SEG": str(args.intervalo)}),
     }
     print(f"\nPainel em http://127.0.0.1:{args.porta}  |  modo monitoramento em "
           f"http://127.0.0.1:{args.porta}/monitoramento")
-    print(f"Captura a cada {args.intervalo} s. Ctrl+C para parar tudo.\n")
+    print(f"Captura e telas atualizando a cada {args.intervalo} s. Ctrl+C para parar tudo.\n")
 
     codigo = 0
     try:

@@ -70,7 +70,8 @@ def criar_app() -> Flask:
         return render_template("painel.html",
                                opcoes=consultas.opcoes(con),
                                situacao=consultas.situacao_captura(con),
-                               dias_padrao=DIAS_PADRAO)
+                               dias_padrao=DIAS_PADRAO,
+                               atualizar_seg=config.PAINEL_ATUALIZAR_SEG)
 
     @app.get("/static/vendor/plotly.min.js")
     def plotly_js():
@@ -105,7 +106,8 @@ def criar_app() -> Flask:
     @app.get("/monitoramento")
     def monitoramento():
         con = _con()
-        return render_template("monitor.html", opcoes=consultas.opcoes(con))
+        return render_template("monitor.html", opcoes=consultas.opcoes(con),
+                               atualizar_seg=config.PAINEL_ATUALIZAR_SEG)
 
     @app.get("/api/monitor")
     def api_monitor():

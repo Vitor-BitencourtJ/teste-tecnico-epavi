@@ -13,7 +13,7 @@
 <script src="{{ url_for('static', filename='vendor/animate-on-scroll.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/plotly.min.js') }}"></script>
 <script>
-  window.PAINEL = {{ {"opcoes": opcoes, "situacao": situacao, "dias_padrao": dias_padrao} | tojson }};
+  window.PAINEL = {{ {"opcoes": opcoes, "situacao": situacao, "dias_padrao": dias_padrao, "atualizar_seg": atualizar_seg} | tojson }};
 </script>
 </head>
 <body class="antialiased selection:bg-emerald-500 selection:text-white text-slate-300 bg-[#000000] font-geist">
@@ -275,7 +275,7 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 class="text-2xl text-white font-semibold tracking-tight">Agora</h2>
-                <p class="text-xs text-neutral-500 mt-1">Eventos abertos ou em atendimento na última captura. O painel inteiro se atualiza sozinho a cada 2 minutos; o período não se aplica a esta seção.</p>
+                <p class="text-xs text-neutral-500 mt-1">Eventos abertos ou em atendimento na última captura. O painel inteiro se atualiza sozinho a cada <span id="txt-intervalo">2 minutos</span>; o período não se aplica a esta seção.</p>
               </div>
               <div id="agora-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm w-fit">
                 <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
@@ -310,8 +310,8 @@
                   <div class="flex justify-between"><span>Mais antigo na fila</span><span class="text-white tabular-nums" id="k-mais-antigo">–</span></div>
                 </div>
                 <div class="flex gap-3 relative z-10 mt-8">
-                  <a href="/monitoramento" id="link-monitor-2" class="flex-1 bg-white text-neutral-900 hover:bg-neutral-200 text-xs font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg> Modo monitoramento
+                  <a href="/monitoramento" id="link-monitor-2" class="flex-1 bg-white text-neutral-900 hover:bg-neutral-200 text-xs font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg> Monitoramento
                   </a>
                   <button type="button" id="btn-agora" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Atualizar fila

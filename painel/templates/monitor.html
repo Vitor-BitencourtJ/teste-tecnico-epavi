@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/ledger.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='painel.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='monitor.css') }}">
-<script>window.MONITOR = {{ {"opcoes": opcoes} | tojson }};</script>
+<script>window.MONITOR = {{ {"opcoes": opcoes, "atualizar_seg": atualizar_seg} | tojson }};</script>
 </head>
 <body class="antialiased text-slate-300 bg-[#000000] font-geist overflow-hidden h-screen">
 

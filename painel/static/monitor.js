@@ -1,7 +1,7 @@
 /* Modo monitoramento: lê /api/monitor a cada 2 minutos e mostra a fila em tela cheia. */
 (function () {
   "use strict";
-  const INTERVALO = 120;  // segundos entre atualizações
+  const INTERVALO = window.MONITOR.atualizar_seg || 120;  // segundos entre atualizações (vem do servidor)
 
   const $ = (id) => document.getElementById(id);
   const fmtN = (n) => (n == null ? "–" : Number(n).toLocaleString("pt-BR"));
